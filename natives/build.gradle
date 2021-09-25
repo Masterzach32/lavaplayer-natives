@@ -175,12 +175,12 @@ def waitForAndCheckSuccess(process, name) {
   }
 }
 
-def buildOpusOnLinux(force) {
+def buildOpusOnLinux(force, isAarch64) {
   def present = file("${projectDir}/libs/64/libopus.a").exists()
 
   if (force || !present) {
     def flags = "-fPIC -O3 -fdata-sections -ffunction-sections"
-    def process = ["./configure", "--enable-static", "--with-cpu=x64-64", "--with-pic", "CFLAGS=${flags}", "CXXFLAGS=${flags}", "LDFLAGS=${flags}"].
+    def process = ["./configure", "--enable-static", (isAarch64) ? "--with-cpu=aarch64" :"--with-cpu=x86-64", "--with-pic", "CFLAGS=${flags}", "CXXFLAGS=${flags}", "LDFLAGS=${flags}"].
         execute(null as String[], file("$projectDir/opus/opus-${opusVersion}"))
 
     waitForAndCheckSuccess(process, "Opus ./configure")
@@ -213,14 +213,14 @@ def replaceAutotoolsVersion(directory, originalVersion) {
   }
 }
 
-def buildMpg123OnLinux(force) {
+def buildMpg123OnLinux(force, isAarch64) {
   def present = file("${projectDir}/libs/64/libmpg123.a").exists()
 
   if (force || !present) {
     replaceAutotoolsVersion("$projectDir/mp3/mpg123-${mpg123Version}", '1.15.1')
 
     def flags = "-fPIC -O3 -fdata-sections -ffunction-sections"
-    def process = ['./configure', '--enable-static', '--with-cpu=x86-64', '--with-pic', "CFLAGS=$flags", "CXXFLAGS=$flags"].
+    def process = ['./configure', '--enable-static', (isAarch64) ? "--with-cpu=aarch64" :"--with-cpu=x86-64", '--with-pic', "CFLAGS=$flags", "CXXFLAGS=$flags"].
         execute(null as String[], file("$projectDir/mp3/mpg123-${mpg123Version}"))
 
     waitForAndCheckSuccess(process, "Mpg123 ./configure")
@@ -238,11 +238,11 @@ def buildMpg123OnLinux(force) {
   }
 }
 
-def prepareOggOnLinux(force) {
+def prepareOggOnLinux(force, isAarch64) {
   def configured = file("$projectDir/vorbis/libogg-${oggVersion}/include/ogg/config_types.h").exists()
 
   if (force || !configured) {
-    def process = ["./configure", "--enable-static", "--build=x86_64-pc-linux-gnu", "--with-pic"].
+    def process = ["./configure", "--enable-static", (isAarch64) ? "--build=aarch64-unknown-linux-gnu" : "--build=x86_64-pc-linux-gnu", "--with-pic"].
         execute(null as String[], file("$projectDir/vorbis/libogg-${oggVersion}"))
 
     process.waitForProcessOutput(System.out as Appendable, System.err)
@@ -253,9 +253,16 @@ def prepareBuilds(force) {
   if (Os.isFamily(Os.FAMILY_WINDOWS)) {
     buildOpusOnWindows(force)
   } else {
-    prepareOggOnLinux(force)
-    buildOpusOnLinux(force)
-    buildMpg123OnLinux(force)
+    def isAarch64 = System.getProperty("os.arch") == "aarch64"
+    if (isAarch64) {
+      System.out.println("aarch64 detected, building for arm64")
+    }
+    System.out.println("Preparing Ogg for Linux (arm:${isAarch64})")
+    prepareOggOnLinux(force, isAarch64)
+    System.out.println("Building Opus for Linux (arm:${isAarch64})")
+    buildOpusOnLinux(force, isAarch64)
+    System.out.println("Building Mpg123 for Linux (arm:${isAarch64})")
+    buildMpg123OnLinux(force, isAarch64)
   }
 }
 

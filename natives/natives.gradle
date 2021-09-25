@@ -18,13 +18,23 @@ def getBuildParameters(base) {
         'env': [:]
     ]
   } else {
-    return [
-        'identifier': "linux-x86-64",
-        'library': "lib${base}.so",
-        'setupArguments': ['-DCMAKE_BUILD_TYPE=Release'],
-        'buildArguments': [],
-        'env': [:]
-    ]
+    if (System.getProperty("os.arch") == "aarch64") {
+      return [
+              'identifier'    : "linux-aarch64",
+              'library'       : "lib${base}.so",
+              'setupArguments': ['-DCMAKE_BUILD_TYPE=Release'],
+              'buildArguments': [],
+              'env'           : [:]
+      ]
+    } else {
+      return [
+              'identifier'    : "linux-x86-64",
+              'library'       : "lib${base}.so",
+              'setupArguments': ['-DCMAKE_BUILD_TYPE=Release'],
+              'buildArguments': [],
+              'env'           : [:]
+      ]
+    }
   }
 }
 

@@ -4,13 +4,22 @@ plugins {
 }
 
 version = '1.3.14'
-ext.moduleName = 'lavaplayer-natives'
+ext.moduleName = 'lavaplayer-natives-arm'
 
 task sourceJar(type: Jar) {
   from sourceSets.main.allJava
 }
 
 publishing {
+  repositories {
+    maven {
+      url = uri("https://maven.masterzach32.net/artifactory/main-libs-release-local/")
+      credentials {
+        username = mavenUsername
+        password = mavenPassword
+      }
+    }
+  }
   publications {
     mavenJava(MavenPublication) {
       groupId rootProject.group

@@ -21,10 +21,10 @@ allprojects {
   publishing {
     repositories {
       maven {
-        url "s3://m2.dv8tion.net/releases"
-        credentials(AwsCredentials) {
-          accessKey project.findProperty("sedmelluqMavenS3AccessKey") as String
-          secretKey project.findProperty("sedmelluqMavenS3SecretKey") as String
+        url = uri("https://maven.masterzach32.net/artifactory/main-libs-release-local/")
+        credentials {
+          username = mavenUsername
+          password = mavenPassword
         }
       }
     }
